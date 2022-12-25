@@ -1,34 +1,10 @@
-from flask import Flask, render_template, abort, request, jsonify
-import nltk
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+# app.py
 
-app = Flask(__name__)
+from werkzeug.middleware.dispatcher import \
+    DispatcherMiddleware  # use to combine each Flask app into a larger one that is dispatched based on prefix
+from app_sentiment import app as flask_app_1
+from app_summary import app as flask_app_2
 
-output = {}
-
-def sentiment(sentence):
-
-    nltk.download('vader_lexicon')
-    sid = SentimentIntensityAnalyzer()
-    score = sid.polarity_scores(sentence)['compound']
-    if(score>0):
-        return "Positive"
-    else:
-        return "Negative"
-
-@app.route("/", methods = ["GET","POST"])
-def sentimentRequest():
-    if request.method == "POST":
-        sentence = request.form['q']
-        sent = sentiment(sentence)
-        output['sentiment'] = sent
-        return jsonify(output)
-    else:
-        sentence = request.args.get('q')
-        sent = sentiment(sentence)
-        print(sentence)
-        output['sentiment'] = sent
-        return jsonify(output)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+application = DispatcherMiddleware(flask_app_1, {
+    '/summary': flask_app_2
+})
