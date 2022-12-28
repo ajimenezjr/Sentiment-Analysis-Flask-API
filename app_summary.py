@@ -1,9 +1,8 @@
-from flask import Flask, render_template, abort, request, jsonify
-import nltk
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from flask import Flask, request, jsonify
 from summa import summarizer
 
-app = Flask(__name__)
+app = Flask(__name__.split('.')[0])
+# CORS(app)
 output = {}
 
 
@@ -38,11 +37,24 @@ def summary_of(sentence, target_length=50):
 
 
 # @app.route("/summary/", methods=["GET", "POST"])
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST", "OPTIONS"])
+# @cross_origin() # allow all origins all methods.
 def summary_request():
+    # Set the response headers
+    # print(request.method)
+    # if request.method == "OPTIONS":
+    #     print(request)
+    #     response = make_response(request.headers)
+    #     response.headers['Access-Control-Allow-Origin'] = '*'
+    # request.headers['Content-Type'] = 'application/json'
     if request.method == "POST":
-        sentence = request.form['q']
-        sent = summary_of(sentence)
+
+        sentence = request.json['q']
+        if type(int(request.json['words'])) == int:
+            target_length_local = request.json['words']
+        else:
+            target_length_local = 50
+        sent = summary_of(sentence, int(target_length_local))
         output = sent
         return jsonify(output)
     else:
@@ -57,6 +69,27 @@ def summary_request():
         output = sent
         return jsonify(output)
 
+
+#
+# @app.route("/summary/", methods=["GET", "POST"])
+# def summary_request2():
+#     if request.method == "POST":
+#         sentence = request.form['q']
+#         sent = summary_of(sentence)
+#         output = sent
+#         return jsonify(output)
+#     else:
+#         sentence = request.args.get('q')
+#         if type(int(request.args.get('words'))) == int:
+#             target_length_local = request.args.get('words')
+#         else:
+#             target_length_local = 50
+#
+#         sent = summary_of(sentence, int(target_length_local))
+#         # print(sentence)
+#         output = sent
+#         return jsonify(output)
+#
 
 if __name__ == "__main__":
     app.run(debug=True)

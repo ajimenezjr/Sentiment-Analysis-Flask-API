@@ -1,14 +1,14 @@
-from flask import Flask, render_template, abort, request, jsonify
 import nltk
+from flask import Flask, request, jsonify
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from summa import summarizer
+
+nltk.download('vader_lexicon')
 
 app = Flask(__name__)
 output = {}
 
 
 def sentiment(sentence):
-    nltk.download('vader_lexicon')
     sid = SentimentIntensityAnalyzer()
     score = sid.polarity_scores(sentence)['compound']
     if score > 0:
